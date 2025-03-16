@@ -1,0 +1,45 @@
+services:
+  metrics-server:
+    image: rustic-insights:latest
+    network_mode: "host"
+    environment:
+      - APP__SERVER__HOST=0.0.0.0
+      - APP__SERVER__PORT=8080
+      - APP__METRICS__PROMETHEUS_ENDPOINT=/metrics
+      - APP__METRICS__METRICS_PREFIX=app
+      - APP__METRICS__METRICS_NAMESPACE=rustic_insights
+      - RUST_LOG=info
+    restart: unless-stopped
+    volumes:
+      - ./config:/app/config
+
+  prometheus:
+    image: prom/prometheus:latest
+    network_mode: "host"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/etc/prometheus/console_libraries
+      - --web.console.templates=/etc/prometheus/consoles
+      - --web.enable-lifecycle
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    network_mode: "host"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_HTTP_PORT=3000
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  grafana-data:

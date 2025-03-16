@@ -1,56 +1,54 @@
-# === Build Stage ===
-FROM rust:1.85.0-slim AS builder
+# Build stage
+FROM rust:1.85-slim-bookworm AS builder
 
-WORKDIR /usr/src/app
-
-# Install only essential build dependencies
+# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
     pkg-config \
     libssl-dev \
-    perl \
-    curl \
-    git \
-    clang \
-    llvm-dev \
-    libclang-dev \
-    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Set path for bindgen to find libclang
-ENV LIBCLANG_PATH=/usr/lib/llvm-14/lib
+WORKDIR /usr/src/app
 
-# Cache dependencies
+# Copy manifests
 COPY Cargo.toml Cargo.lock ./
-RUN mkdir src && \
-    echo "fn main() {}" > src/main.rs && \
-    echo "pub fn dummy() {}" > src/lib.rs && \
-    cargo build --release
 
-# Copy actual source and compile
+# Copy source code
 COPY src ./src
+COPY config ./config
 
-RUN cargo build --release --locked
+# Build in release mode
+RUN cargo build --release
 
-# === Runtime Stage ===
-FROM debian:bookworm-slim AS runtime
-WORKDIR /app
+# Runtime stage
+FROM debian:bookworm-slim
 
-# Install only runtime dependencies
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libssl3 \
-    libpq5 \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy compiled binary from builder
-COPY --from=builder /usr/src/app/target/release/rustic-insights /app/
+WORKDIR /app
+
+# Copy binary from build stage
+COPY --from=builder /usr/src/app/target/release/rustic-insights /app/rustic-insights
+
+# Create config directory and copy config files
+COPY --from=builder /usr/src/app/config /app/config
+
+# Set environment variables for better diagnostics
+ENV RUST_BACKTRACE=1
+ENV RUST_LOG=info
+ENV APP__SERVER__HOST=0.0.0.0
+ENV APP__SERVER__PORT=8080
 
 # Use a non-root user for security
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 USER appuser
 
+# Expose the application port
 EXPOSE 8080
 
-CMD ["./rustic-insights"]
+# Run the binary
+CMD ["/app/rustic-insights"]
