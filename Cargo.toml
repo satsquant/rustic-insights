@@ -2,5 +2,35 @@
 name = "rustic-insights"
 version = "0.1.0"
 edition = "2024"
+authors = ["m.oumarou@hamatek.com"]
+description = "A metrics collection server that integrates with Prometheus"
+
+[lib]
+name = "rustic_insights"
+path = "src/lib.rs"
+
+[[example]]
+name = "prometheus_push_client"
+path = "examples/prometheus_push_client.rs"
 
 [dependencies]
+actix-web = "4.10.2"
+chrono = { version = "0.4.40", features = ["serde"] }
+config = "0.15.11"
+dotenv = "0.15.0"
+futures = "0.3.31"
+num_cpus = "1.16.0"
+prometheus = "0.13.4"
+prometheus-client = "0.23.1"
+regex = "1.11.1"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+thiserror = "2.0.12"
+tokio = { version = "1.44.1", features = ["full"] }
+tracing = "0.1.41"
+tracing-actix-web = "0.7.16"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+
+[dev-dependencies]
+actix-rt = "2.10.0"
+reqwest = { version = "0.12.14", features = ["json"] }
