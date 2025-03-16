@@ -63,7 +63,6 @@ impl MetricsRegistry {
             self.config.metrics_prefix, self.config.metrics_namespace, metric.name
         );
 
-        let label_names: Vec<&str> = metric.labels.keys().map(|k| k.as_str()).collect();
         let label_values: Vec<&str> = metric.labels.values().map(|v| v.as_str()).collect();
 
         match metric.metric_type {

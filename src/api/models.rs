@@ -48,7 +48,7 @@ impl Validate for Metric {
             ));
         }
 
-        for (key, value) in &self.labels {
+        for (key, _value) in &self.labels {
             if key.is_empty() {
                 return Err(ServerError::ValidationError(
                     "Label name cannot be empty".to_string(),
