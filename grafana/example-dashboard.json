@@ -79,7 +79,7 @@
         "pluginVersion": "7.5.7",
         "targets": [
           {
-            "expr": "sum(app_metrics_server_http_requests_total)",
+            "expr": "sum(app_rustic_insights_http_requests_total)",
             "interval": "",
             "legendFormat": "",
             "refId": "A"
@@ -144,7 +144,7 @@
         "pluginVersion": "7.5.7",
         "targets": [
           {
-            "expr": "sum(app_metrics_server_memory_usage_bytes) / 1000000",
+            "expr": "sum(app_rustic_insights_memory_usage_bytes) / 1000000",
             "interval": "",
             "legendFormat": "",
             "refId": "A"
@@ -209,7 +209,7 @@
         "pluginVersion": "7.5.7",
         "targets": [
           {
-            "expr": "sum(rate(app_metrics_server_http_request_duration_seconds_sum[5m])) / sum(rate(app_metrics_server_http_request_duration_seconds_count[5m]))",
+            "expr": "sum(rate(app_rustic_insights_http_request_duration_seconds_sum[5m])) / sum(rate(app_rustic_insights_http_request_duration_seconds_count[5m]))",
             "interval": "",
             "legendFormat": "",
             "refId": "A"
@@ -274,7 +274,7 @@
         "pluginVersion": "7.5.7",
         "targets": [
           {
-            "expr": "sum(rate(app_metrics_server_http_requests_total[5m]))",
+            "expr": "sum(rate(app_rustic_insights_http_requests_total[5m]))",
             "interval": "",
             "legendFormat": "",
             "refId": "A"
@@ -346,7 +346,7 @@
         "steppedLine": false,
         "targets": [
           {
-            "expr": "sum(rate(app_metrics_server_http_requests_total[1m])) by (application)",
+            "expr": "sum(rate(app_rustic_insights_http_requests_total[1m])) by (application)",
             "interval": "",
             "legendFormat": "{{application}}",
             "refId": "A"
@@ -442,7 +442,7 @@
         "steppedLine": false,
         "targets": [
           {
-            "expr": "app_metrics_server_memory_usage_bytes",
+            "expr": "app_rustic_insights_memory_usage_bytes",
             "interval": "",
             "legendFormat": "{{application}}",
             "refId": "A"
@@ -538,25 +538,25 @@
         "steppedLine": false,
         "targets": [
           {
-            "expr": "histogram_quantile(0.5, sum(rate(app_metrics_server_http_request_duration_seconds_bucket[5m])) by (le))",
+            "expr": "histogram_quantile(0.5, sum(rate(app_rustic_insights_http_request_duration_seconds_bucket[5m])) by (le))",
             "interval": "",
             "legendFormat": "50th percentile",
             "refId": "A"
           },
           {
-            "expr": "histogram_quantile(0.9, sum(rate(app_metrics_server_http_request_duration_seconds_bucket[5m])) by (le))",
+            "expr": "histogram_quantile(0.9, sum(rate(app_rustic_insights_http_request_duration_seconds_bucket[5m])) by (le))",
             "interval": "",
             "legendFormat": "90th percentile",
             "refId": "B"
           },
           {
-            "expr": "histogram_quantile(0.95, sum(rate(app_metrics_server_http_request_duration_seconds_bucket[5m])) by (le))",
+            "expr": "histogram_quantile(0.95, sum(rate(app_rustic_insights_http_request_duration_seconds_bucket[5m])) by (le))",
             "interval": "",
             "legendFormat": "95th percentile",
             "refId": "C"
           },
           {
-            "expr": "histogram_quantile(0.99, sum(rate(app_metrics_server_http_request_duration_seconds_bucket[5m])) by (le))",
+            "expr": "histogram_quantile(0.99, sum(rate(app_rustic_insights_http_request_duration_seconds_bucket[5m])) by (le))",
             "interval": "",
             "legendFormat": "99th percentile",
             "refId": "D"
@@ -679,7 +679,7 @@
         "pluginVersion": "7.5.7",
         "targets": [
           {
-            "expr": "sum(increase(app_metrics_server_http_request_duration_seconds_bucket[5m])) by (le)",
+            "expr": "sum(increase(app_rustic_insights_http_request_duration_seconds_bucket[5m])) by (le)",
             "format": "heatmap",
             "interval": "",
             "legendFormat": "{{le}}",
