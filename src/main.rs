@@ -11,7 +11,7 @@ use tracing_subscriber::FmtSubscriber;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::DEBUG)
+        .with_max_level(Level::INFO)
         .finish();
     tracing::subscriber::set_global_default(subscriber).expect("Failed to set up the logger");
 
