@@ -8,12 +8,12 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-#[derive(Clone)]
 pub struct MetricsRegistry {
     registry: Arc<Registry>,
     counters: Arc<RwLock<HashMap<String, CounterVec>>>,
     gauges: Arc<RwLock<HashMap<String, GaugeVec>>>,
     histograms: Arc<RwLock<HashMap<String, HistogramVec>>>,
+    label_keys: RwLock<HashMap<String, Vec<String>>>,
     config: MetricsConfig,
 }
 
@@ -24,6 +24,7 @@ impl MetricsRegistry {
             counters: Arc::new(RwLock::new(HashMap::new())),
             gauges: Arc::new(RwLock::new(HashMap::new())),
             histograms: Arc::new(RwLock::new(HashMap::new())),
+            label_keys: RwLock::new(HashMap::new()),
             config,
         }
     }
@@ -34,17 +35,22 @@ impl MetricsRegistry {
             self.config.metrics_prefix, self.config.metrics_namespace, metric.name
         );
 
+        let mut label_keys: Vec<String> = metric.labels.keys().cloned().collect();
+        label_keys.sort();
+
+        let label_keys_str: Vec<&str> = label_keys.iter().map(|s| s.as_str()).collect();
+
         match metric.metric_type {
             MetricType::Counter => {
-                self.register_counter(&full_name, &metric.help, &metric.labels)
+                self.register_counter(&full_name, &metric.help, label_keys_str)
                     .await?;
             }
             MetricType::Gauge => {
-                self.register_gauge(&full_name, &metric.help, &metric.labels)
+                self.register_gauge(&full_name, &metric.help, label_keys_str)
                     .await?;
             }
             MetricType::Histogram => {
-                self.register_histogram(&full_name, &metric.help, &metric.labels)
+                self.register_histogram(&full_name, &metric.help, label_keys_str)
                     .await?;
             }
             MetricType::Summary => {
@@ -53,6 +59,9 @@ impl MetricsRegistry {
                 ));
             }
         }
+
+        let mut label_keys_map = self.label_keys.write().await;
+        label_keys_map.insert(full_name, label_keys);
 
         Ok(())
     }
@@ -63,7 +72,15 @@ impl MetricsRegistry {
             self.config.metrics_prefix, self.config.metrics_namespace, metric.name
         );
 
-        let label_values: Vec<&str> = metric.labels.values().map(|v| v.as_str()).collect();
+        let label_keys_map = self.label_keys.read().await;
+        let label_keys = label_keys_map.get(&full_name).ok_or_else(|| {
+            ServerError::MetricsProcessingError(format!("Metric '{}' not registered", full_name))
+        })?;
+
+        let label_values: Vec<&str> = label_keys
+            .iter()
+            .map(|key| metric.labels.get(key).map(|v| v.as_str()).unwrap_or(""))
+            .collect();
 
         match metric.metric_type {
             MetricType::Counter => {
@@ -141,11 +158,10 @@ impl MetricsRegistry {
         &self,
         name: &str,
         help: &str,
-        labels: &HashMap<String, String>,
+        label_names: Vec<&str>,
     ) -> Result<(), ServerError> {
         let mut counters = self.counters.write().await;
         if !counters.contains_key(name) {
-            let label_names: Vec<&str> = labels.keys().map(|k| k.as_str()).collect();
             let opts = Opts::new(name, help);
             let counter = CounterVec::new(opts, &label_names)
                 .map_err(|e| ServerError::MetricRegistrationError(e.to_string()))?;
@@ -163,11 +179,10 @@ impl MetricsRegistry {
         &self,
         name: &str,
         help: &str,
-        labels: &HashMap<String, String>,
+        label_names: Vec<&str>,
     ) -> Result<(), ServerError> {
         let mut gauges = self.gauges.write().await;
         if !gauges.contains_key(name) {
-            let label_names: Vec<&str> = labels.keys().map(|k| k.as_str()).collect();
             let opts = Opts::new(name, help);
             let gauge = GaugeVec::new(opts, &label_names)
                 .map_err(|e| ServerError::MetricRegistrationError(e.to_string()))?;
@@ -185,11 +200,10 @@ impl MetricsRegistry {
         &self,
         name: &str,
         help: &str,
-        labels: &HashMap<String, String>,
+        label_names: Vec<&str>,
     ) -> Result<(), ServerError> {
         let mut histograms = self.histograms.write().await;
         if !histograms.contains_key(name) {
-            let label_names: Vec<&str> = labels.keys().map(|k| k.as_str()).collect();
             let opts = HistogramOpts::new(name, help);
             let histogram = HistogramVec::new(opts, &label_names)
                 .map_err(|e| ServerError::MetricRegistrationError(e.to_string()))?;
