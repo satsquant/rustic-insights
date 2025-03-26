@@ -33,11 +33,15 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/certs:/etc/grafana/certs
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_PROTOCOL=https
       - GF_SERVER_HTTP_PORT=3000
+      - GF_SERVER_CERT_FILE=/etc/grafana/certs/fullchain.crt
+      - GF_SERVER_CERT_KEY=/etc/grafana/certs/grafana.key
     restart: unless-stopped
 
 volumes:
